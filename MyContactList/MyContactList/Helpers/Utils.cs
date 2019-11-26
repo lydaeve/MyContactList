@@ -9,29 +9,41 @@ namespace MyContactList.Helpers
 {
     public class Utils
     {
-        private static string filename = "contactList2.txt";
-        public static void Write(ObservableCollection<Contact> ContactList, Contact contact)
-        {
-            try
+        private static string filename = "contactListNew.txt";
+        public static void Write(Contact contact, bool isEdit, bool isAdd, ref bool existContact, string existName)
+        {            
+            if (isAdd)
             {
-                //string filename = "contactList2.txt";
-                Console.WriteLine(ContactList);
-                WriteTxt(ContactList, contact, filename);
-
+                try
+                {
+                    bool contactExist = ContactExist(filename, contact);
+                    if (!contactExist)
+                    {
+                        WriteTxt(contact, filename);
+                    }
+                    else
+                    {
+                        existContact = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    throw new Exception(ex.Message);
+                }
             }
-            catch (Exception ex)
+            else if (isEdit)
             {
-
-                Console.WriteLine(ex.Message);
-                throw new Exception(ex.Message);
+                EditTxt(contact, filename, existName);
+                //i have to read the file and create a temp file to rewrite the data 
             }
+
         }
         public static List<Contact> Read()
         {
             try
             {
-                List<Contact> Contact = new List<Contact>();
-                //string filename = "contactList2.txt";
+                List<Contact> Contact = new List<Contact>();             
                 Contact = ReadTxt(filename);
                 return Contact;
             }
@@ -43,7 +55,7 @@ namespace MyContactList.Helpers
         }
 
 
-        public static void WriteTxt(ObservableCollection<Contact> ContactList, Contact contact, string filename)
+        public static void WriteTxt(Contact contact, string filename)
         {
 
             var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
@@ -59,25 +71,50 @@ namespace MyContactList.Helpers
                 using (TextWriter tw = new StreamWriter(filePath, true))
                 {
                     tw.WriteLine(string.Format("{0} - {1} - {2} - {3}", contact.Name, contact.Phone, contact.Address, contact.Email));
-                    //foreach (var item in ContactList)
-                    //{
-                    //    tw.WriteLine(string.Format("{0} - {1} - {2} - {3}", item.Name, item.Phone, item.Address, item.Email));
-                //}
-                    //tw.WriteLine("the very first line");
                 }
 
             }
             else if (File.Exists(filePath))
-            {
-                //return;
+            {                
                 using (StreamWriter tw = File.AppendText(filePath))
                 {
-                    tw.WriteLine(string.Format("{0} - {1} - {2} - {3}", contact.Name, contact.Phone, contact.Address, contact.Email));
-                    //    tw.WriteLine("fdrtgd2");
+                    tw.WriteLine(string.Format("{0} - {1} - {2} - {3}", contact.Name, contact.Phone, contact.Address, contact.Email));                
                 }
             }
+        }
 
+        public static void EditTxt(Contact contact, string filename, string existingName)
+        {
+            string tempFile = "tempContact.txt";
+            var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            var filePath = Path.Combine(documentsPath, filename);
+            var tempPath = Path.Combine(documentsPath, tempFile);
 
+            if (File.Exists(filePath))
+            {
+                using (StreamReader st = new StreamReader(filePath))
+                using (StreamWriter tw = new StreamWriter(tempPath, true))
+                {
+                    string line = "";
+                    while ((line = st.ReadLine()) != null)
+                    {
+                        if (!line.Contains(existingName))
+                        {
+                            tw.WriteLine(line);
+                        }
+                        else
+                        {
+                            tw.WriteLine(string.Format("{0} - {1} - {2} - {3}", contact.Name, contact.Phone, contact.Address, contact.Email));
+                        }
+                    }
+                }                
+                File.Delete(filePath);
+                File.Move(tempPath, filePath);
+                using (StreamReader st = new StreamReader(filePath))
+                {
+                    string content2 = st.ReadToEnd();
+                }                    
+            }
         }
 
         public static List<Contact> ReadTxt(string filename)
@@ -114,6 +151,23 @@ namespace MyContactList.Helpers
             {
                 return null;
             }
+        }
+        private static bool ContactExist(string filename, Contact contact)
+        {
+            var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            var filePath = Path.Combine(documentsPath, filename);
+            if (File.Exists(filePath))
+            {
+                if (File.ReadAllText(filePath).Contains(contact.Name))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return false;
         }
     }
 

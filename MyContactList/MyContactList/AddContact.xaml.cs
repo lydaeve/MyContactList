@@ -14,6 +14,10 @@ namespace MyContactList
     public partial class AddContact : ContentPage
     {
         Contact contact = new Contact();
+        private bool isEdit = false;
+        private bool isAdd = false;
+        private string existingName = "";
+
 
         public AddContact()
         {
@@ -24,6 +28,7 @@ namespace MyContactList
             nameEntry.ReturnCommand = new Command(() => emailEntry.Focus());
             emailEntry.ReturnCommand = new Command(() => phoneEntry.Focus());
             phoneEntry.ReturnCommand = new Command(() => AddressEntry.Focus());
+            isAdd = true;
         }
         public AddContact(Contact contact)
         {
@@ -35,11 +40,14 @@ namespace MyContactList
             emailEntry.Text = contact.Email;
             phoneEntry.Text = contact.Phone;
             AddressEntry.Text = contact.Address;
+            isEdit = true;
+            existingName = nameEntry.Text;
+
         }
 
         private async void AddContact_ButtonClicked(object sender, EventArgs e)
         {
-            if ((string.IsNullOrWhiteSpace(nameEntry.Text)) || (string.IsNullOrWhiteSpace(emailEntry.Text)) ||
+             if ((string.IsNullOrWhiteSpace(nameEntry.Text)) || (string.IsNullOrWhiteSpace(emailEntry.Text)) ||
                 (string.IsNullOrWhiteSpace(phoneEntry.Text)) || (string.IsNullOrWhiteSpace(AddressEntry.Text)) ||
                 (string.IsNullOrEmpty(nameEntry.Text)) || (string.IsNullOrEmpty(emailEntry.Text)) ||
                 (string.IsNullOrEmpty(phoneEntry.Text)) || (string.IsNullOrEmpty(AddressEntry.Text)))
@@ -52,11 +60,20 @@ namespace MyContactList
                 contact.Email = emailEntry.Text;
                 contact.Phone = phoneEntry.Text;
                 contact.Address = AddressEntry.Text.ToString();
-
+                
                 try
                 {
-                    MyContactList.Helpers.Utils.Write(null, contact);
-                    await Navigation.PushAsync(new MainPage());
+                    bool existContact = false;
+
+                    MyContactList.Helpers.Utils.Write(contact, isEdit, isAdd, ref existContact, existingName);
+                    if (!existContact)
+                    {
+                        await Navigation.PushAsync(new MainPage());
+                    }
+                    else
+                    {
+                        await DisplayAlert("", " Contact already exist try again", "Cancel");
+                    }                    
                 }
                 catch (Exception ex)
                 {
@@ -65,5 +82,7 @@ namespace MyContactList
                 }
             }
         }
+
+
     }
 }
