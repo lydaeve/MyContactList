@@ -1,16 +1,86 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MyContactList.AddContact">
+             x:Class="MyContactList.AddContact"
+             xmlns:converters="clr-namespace:MyContactList.Converters">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:EmailConverter x:Key="EmailConverter" />
+            <converters:EmailCorrectHideLabelConverter x:Key="EmailCorrectHideLabelConverter" />
+            <converters:PhoneConverter x:Key="PhoneConverter" />
+            <converters:PhoneCorrectHideLabelConverter x:Key="PhoneCorrectHideLabelConverter" />
+            <converters:NotNullOrEmptyConverter x:Key="NotNullOrEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <ContentPage.Content>
         <AbsoluteLayout Margin="5,0,5,5">
             <FlexLayout IsVisible="True" JustifyContent="SpaceEvenly" Direction="Column" AlignItems="Center" Margin="30,0,30,0" >
+                <Label
+                FontSize="Small"
+                HorizontalTextAlignment="Center"
+                IsVisible="False"
+                Text="Name can not be empty ..."
+                TextColor="OrangeRed">
+                    <Label.Triggers>
+                        <MultiTrigger TargetType="Label">
+                            <MultiTrigger.Conditions>
+                                <BindingCondition Binding="{Binding Source={x:Reference nameEntry}, Path=Text, Converter={StaticResource NotNullOrEmptyConverter}}" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter Property="IsVisible" Value="True" />
+                        </MultiTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <Label
+                FontSize="Small"
+                HorizontalTextAlignment="Center"
+                IsVisible="False"
+                Text="Invalid email ..."
+                TextColor="OrangeRed">
+                <Label.Triggers>
+                    <MultiTrigger TargetType="Label">
+                        <MultiTrigger.Conditions>
+                                <BindingCondition Binding="{Binding Source={x:Reference emailEntry}, Path=Text, Converter={StaticResource EmailCorrectHideLabelConverter}}" Value="False" />                                
+                            </MultiTrigger.Conditions>
+                        <Setter Property="IsVisible" Value="True" />
+                    </MultiTrigger>
+                </Label.Triggers>
+                </Label>
+
+                <Label
+                FontSize="Small"
+                HorizontalTextAlignment="Center"
+                IsVisible="False"
+                Text="Invalid phone length ..."
+                TextColor="OrangeRed">
+                    <Label.Triggers>
+                        <MultiTrigger TargetType="Label">
+                            <MultiTrigger.Conditions>
+                                <BindingCondition Binding="{Binding Source={x:Reference phoneEntry}, Path=Text, Converter={StaticResource PhoneCorrectHideLabelConverter}}" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter Property="IsVisible" Value="True" />
+                        </MultiTrigger>
+                    </Label.Triggers>
+                </Label>
 
                 <Entry x:Name="nameEntry" ReturnType="Next" MaxLength="10" Placeholder="Name" FontSize="Medium" FlexLayout.AlignSelf="Stretch"  HorizontalOptions="CenterAndExpand"  TextColor="Black" Keyboard="Text" />
                 <Entry x:Name="emailEntry" Placeholder="Email" ReturnType="Next" Keyboard="Email" FontSize="Medium" FlexLayout.AlignSelf="Stretch"  HorizontalOptions="CenterAndExpand"  TextColor="Black" />
                 <Entry x:Name="phoneEntry" ReturnType="Done" MaxLength="10" Keyboard="Telephone" Placeholder="Phone" FontSize="Medium" FlexLayout.AlignSelf="Stretch"  HorizontalOptions="CenterAndExpand"  TextColor="Black" />
                 <Entry x:Name="AddressEntry" ReturnType="Next" MaxLength="12" Placeholder="Address" FontSize="Medium" FlexLayout.AlignSelf="Stretch"  HorizontalOptions="CenterAndExpand"  TextColor="Black" />
-                <Button x:Name="add" Clicked="AddContact_ButtonClicked" FontSize="Medium" TextColor="White" BorderColor="Black" BackgroundColor="#56A7E6"  CornerRadius="5" FlexLayout.AlignSelf="Stretch"  HorizontalOptions="CenterAndExpand" Text="Add/Edit Contact"/>
+                <Button x:Name="add" Clicked="AddContact_ButtonClicked" IsEnabled="False" FontSize="Medium" TextColor="White" BorderColor="Black" BackgroundColor="#56A7E6"  CornerRadius="5" FlexLayout.AlignSelf="Stretch"  HorizontalOptions="CenterAndExpand" Text="Add/Edit Contact">
+                    <Button.Triggers>
+                        <MultiTrigger TargetType="Button">
+                            <MultiTrigger.Conditions>
+                                <BindingCondition Binding="{Binding Source={x:Reference nameEntry}, Path=Text, Converter={StaticResource NotNullOrEmptyConverter}}" Value="True" />
+                                <BindingCondition Binding="{Binding Source={x:Reference emailEntry}, Path=Text, Converter={StaticResource EmailConverter}}" Value="True" />
+                                <BindingCondition Binding="{Binding Source={x:Reference phoneEntry}, Path=Text, Converter={StaticResource PhoneConverter}}" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter Property="IsEnabled" Value="True" />
+                        </MultiTrigger>
+                    </Button.Triggers>
+                </Button>
             </FlexLayout>
         </AbsoluteLayout>
 
